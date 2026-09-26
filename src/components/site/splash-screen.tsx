@@ -1,6 +1,26 @@
+import { useEffect, useState } from "react";
+
 import logo from "@/assets/logo.png";
 
+const SPLASH_KEY = "tmp-splash-seen";
+
 export function SplashScreen() {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(SPLASH_KEY) === "1") return;
+      window.localStorage.setItem(SPLASH_KEY, "1");
+    } catch {
+      // storage unavailable (private mode) — still show it once this visit
+    }
+    setShow(true);
+    const timer = window.setTimeout(() => setShow(false), 6000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  if (!show) return null;
+
   return (
     <div
       aria-hidden="true"
