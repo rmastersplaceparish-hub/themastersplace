@@ -67,6 +67,7 @@ function ContentManagerPage() {
         description="Keep the public events and photo gallery current from one place."
         actions={<Button variant="outline" onClick={() => void load()} disabled={loading}><RefreshCw className="size-4" /> Refresh</Button>}
       />
+      <StaffNav />
       <section className="bg-background py-8 lg:py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 flex flex-wrap gap-2 border-b border-border pb-3">
