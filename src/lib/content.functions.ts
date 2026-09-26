@@ -50,11 +50,17 @@ const galleryInput = z.object({
 });
 
 async function getSignedUrls(paths: string[]) {
-  if (paths.length === 0) return new Map<string, string>();
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin.storage.from("church-media").createSignedUrls(paths, 3600);
-  if (error) throw new Error(error.message);
-  return new Map((data ?? []).flatMap((item, index) => item.signedUrl ? [[paths[index]!, item.signedUrl] as const] : []));
+  const empty = new Map<string, string>();
+  if (paths.length === 0) return empty;
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.storage.from("church-media").createSignedUrls(paths, 3600);
+    if (error) throw new Error(error.message);
+    return new Map((data ?? []).flatMap((item, index) => item.signedUrl ? [[paths[index]!, item.signedUrl] as const] : []));
+  } catch (error) {
+    console.error("[content] Unable to sign media URLs", error);
+    return empty;
+  }
 }
 
 export const getPublicContent = createServerFn({ method: "GET" }).handler(async () => {
@@ -100,7 +106,7 @@ export const getPublicContent = createServerFn({ method: "GET" }).handler(async 
   };
 });
 
-async function assertPastoralStaff(supabase: Parameters<typeof requireSupabaseAuth>[0] extends never ? never : any, userId: string) {
+async function assertPastoralStaff(supabase: SupabaseClient<Database>, userId: string) {
   const [admin, pastor] = await Promise.all([
     supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
     supabase.rpc("has_role", { _user_id: userId, _role: "pastor" }),
