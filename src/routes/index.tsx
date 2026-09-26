@@ -89,8 +89,30 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  loader: async () => {
+    try {
+      const { events: publishedEvents } = await getPublicContent();
+      return { publishedEvents };
+    } catch (error) {
+      console.error("[home] Unable to load published events", error);
+      return { publishedEvents: [] as PublicEvent[] };
+    }
+  },
   component: HomePage,
+  errorComponent: () => null,
+  notFoundComponent: () => null,
 });
+
+function formatEventDate(value: string) {
+  return new Date(value).toLocaleString("en-NG", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 const quickActions = [
   {
