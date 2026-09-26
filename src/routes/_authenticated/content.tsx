@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PageShell, PageHeader } from "@/components/site/page-shell";
+import { StaffNav } from "@/components/site/staff-nav";
 import { supabase } from "@/integrations/supabase/client";
 import {
   createEvent,
