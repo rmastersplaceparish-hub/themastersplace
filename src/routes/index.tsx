@@ -43,29 +43,9 @@ import {
   visitorExpectations,
   TELEGRAM_CHANNEL_URL,
 } from "@/lib/site-data";
-import { galleryHighlights } from "@/lib/gallery";
-import { getPublicContent, type PublicEvent } from "@/lib/content.functions";
+import { getPublicContent, type PublicEvent, type PublicGalleryPhoto } from "@/lib/content.functions";
 import adeboye1 from "@/assets/adeboye-1.webp";
 import adeboye2 from "@/assets/adeboye-2.webp";
-
-export const heroSlides = [
-  {
-    src: galleryHighlights[0]?.src ?? "",
-    alt: "Congregation worshipping at RCCG The Master's Place, Ile-Ife",
-  },
-  {
-    src: galleryHighlights[1]?.src ?? "",
-    alt: "Church family at RCCG The Master's Place",
-  },
-  {
-    src: galleryHighlights[2]?.src ?? "",
-    alt: "A recent gathering at RCCG The Master's Place",
-  },
-  {
-    src: galleryHighlights[3]?.src ?? "",
-    alt: "Fellowship at RCCG The Master's Place",
-  },
-];
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -91,11 +71,11 @@ export const Route = createFileRoute("/")({
   }),
   loader: async () => {
     try {
-      const { events: publishedEvents } = await getPublicContent();
-      return { publishedEvents };
+      const { events: publishedEvents, photos } = await getPublicContent();
+      return { publishedEvents, photos };
     } catch (error) {
       console.error("[home] Unable to load published events", error);
-      return { publishedEvents: [] as PublicEvent[] };
+      return { publishedEvents: [] as PublicEvent[], photos: [] as PublicGalleryPhoto[] };
     }
   },
   component: HomePage,
@@ -146,18 +126,23 @@ const ministryIcons = [Baby, Sparkles, Shield, HeartHandshake, Music] as const;
 const eventIcons = [Flame, Users, Fish] as const;
 
 function HomePage() {
-  const { publishedEvents } = Route.useLoaderData();
+  const { publishedEvents, photos } = Route.useLoaderData();
+  const managedPhotos = photos.filter((photo) => photo.image_url).map((photo) => ({ src: photo.image_url, alt: photo.caption || "A moment at The Master's Place" }));
+  const slides = managedPhotos.slice(0, 4);
+  const highlights = managedPhotos.slice(0, 6);
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
-    if (paused) return;
-    const timer = setInterval(() => setCurrent((prev) => (prev + 1) % heroSlides.length), 6000);
+    if (paused || !slides.length) return;
+    const timer = setInterval(() => setCurrent((prev) => (prev + 1) % slides.length), 6000);
     return () => clearInterval(timer);
-  }, [paused]);
+  }, [paused, slides.length]);
 
-  const prev = () => setCurrent((c) => (c - 1 + heroSlides.length) % heroSlides.length);
-  const next = () => setCurrent((c) => (c + 1) % heroSlides.length);
+  useEffect(() => setCurrent(0), [slides.length]);
+
+  const prev = () => setCurrent((c) => (c - 1 + slides.length) % slides.length);
+  const next = () => setCurrent((c) => (c + 1) % slides.length);
 
   const now = Date.now();
   const upcoming = publishedEvents
@@ -231,7 +216,7 @@ function HomePage() {
             </div>
           </div>
 
-          <div className="relative">
+           {slides.length > 0 && <div className="relative">
             <div
               aria-hidden
               className="animate-spin-slow absolute -top-12 -right-12 hidden size-48 rounded-full border-4 border-dashed border-accent/50 lg:block"
@@ -259,7 +244,7 @@ function HomePage() {
               onMouseEnter={() => setPaused(true)}
               onMouseLeave={() => setPaused(false)}
             >
-              {heroSlides.map((img, i) => (
+              {slides.map((img, i) => (
                 <img
                   key={`${img.src}-${i}`}
                   src={img.src}
@@ -285,7 +270,7 @@ function HomePage() {
                 <ChevronRight className="size-4" />
               </button>
               <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
-                {heroSlides.map((slide, i) => (
+                {slides.map((slide, i) => (
                   <button
                     key={`${slide.src}-${i}`}
                     onClick={() => setCurrent(i)}
@@ -298,7 +283,7 @@ function HomePage() {
                 ))}
               </div>
             </div>
-          </div>
+          </div>}
         </div>
 
         {/* Quick actions */}
@@ -354,8 +339,8 @@ function HomePage() {
             title="Moments from our services & programmes"
             description="Real photographs from Sunday worship, Cultural Sunday, Family Weekend, Christmas Carol and the Master's Praise Concert."
           />
-          <div className="mt-12 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-              {galleryHighlights.map((photo, i) => (
+           {highlights.length > 0 && <div className="mt-12 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+              {highlights.map((photo, i) => (
               <Reveal
                   key={`${photo.src}-${i}`}
                 delay={i * 80}
@@ -371,7 +356,7 @@ function HomePage() {
                 />
               </Reveal>
             ))}
-          </div>
+           </div>}
           <div className="mt-10 flex justify-center">
             <Button asChild size="lg">
               <Link to="/gallery">
@@ -520,14 +505,14 @@ function HomePage() {
       {/* Visitors */}
       <section id="visitors" className="bg-secondary py-16 lg:py-24">
         <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8">
-          <Reveal className="relative aspect-4/3 overflow-hidden rounded-xl border border-border">
+          {managedPhotos.length > 0 && <Reveal className="relative aspect-4/3 overflow-hidden rounded-xl border border-border">
             <img
-              src={galleryHighlights[4]?.src ?? ""}
+              src={(managedPhotos[4] ?? managedPhotos[0])?.src ?? ""}
               alt="Members welcoming one another at RCCG The Master's Place"
               loading="lazy"
               className="size-full object-cover"
             />
-          </Reveal>
+          </Reveal>}
           <Reveal delay={120}>
             <SectionHeading
               align="left"
