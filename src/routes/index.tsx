@@ -230,7 +230,7 @@ function HomePage() {
               className="animate-spin-slow absolute -bottom-12 -left-12 hidden size-36 rounded-full border-4 border-dashed border-current/25 lg:block"
             >
               <span className="absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 rounded-full bg-accent shadow-[0_0_12px_var(--accent)]" />
-           </div>}
+            </div>
             <div
               aria-hidden
               className="animate-spin-slow-reverse absolute right-1/4 -bottom-14 hidden size-20 rounded-full border-[3px] border-accent/40 lg:block"
@@ -283,7 +283,7 @@ function HomePage() {
                 ))}
               </div>
             </div>
-          </div>
+          </div>}
         </div>
 
         {/* Quick actions */}
