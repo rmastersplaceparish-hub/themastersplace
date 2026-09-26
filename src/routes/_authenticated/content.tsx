@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PageShell, PageHeader } from "@/components/site/page-shell";
+import { StaffNav } from "@/components/site/staff-nav";
 import { supabase } from "@/integrations/supabase/client";
 import {
   createEvent,
@@ -66,6 +67,7 @@ function ContentManagerPage() {
         description="Keep the public events and photo gallery current from one place."
         actions={<Button variant="outline" onClick={() => void load()} disabled={loading}><RefreshCw className="size-4" /> Refresh</Button>}
       />
+      <StaffNav />
       <section className="bg-background py-8 lg:py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 flex flex-wrap gap-2 border-b border-border pb-3">
@@ -148,7 +150,7 @@ function EventForm({ event, onCancel, onSave, saving }: { event: ManagedEvent | 
       try { flyerPath = await uploadMedia(file, "flyers"); } catch (error) { toast.error(error instanceof Error ? error.message : "Unable to upload flyer."); setUploading(false); return; }
       setUploading(false);
     }
-    await onSave({ ...form, theme: form.theme || null, endDate: form.endDate || null, eventDate: new Date(form.eventDate).toISOString(), endDate: form.endDate ? new Date(form.endDate).toISOString() : null }, flyerPath);
+    await onSave({ ...form, theme: form.theme || null, eventDate: new Date(form.eventDate).toISOString(), endDate: form.endDate ? new Date(form.endDate).toISOString() : null }, flyerPath);
   };
   return <form onSubmit={(e) => void submit(e)} className="panel grid gap-5 p-5 lg:grid-cols-2">
     <div className="lg:col-span-2 flex items-center justify-between border-b border-border pb-4"><div><p className="eyebrow">{event ? "Edit event" : "New event"}</p><h3 className="mt-1 text-lg font-semibold text-foreground">Event details</h3></div><Button type="button" variant="ghost" size="icon" onClick={onCancel} aria-label="Close event form"><X className="size-4" /></Button></div>

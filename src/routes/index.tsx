@@ -44,6 +44,7 @@ import {
   TELEGRAM_CHANNEL_URL,
 } from "@/lib/site-data";
 import { galleryHighlights } from "@/lib/gallery";
+import { getPublicContent, type PublicEvent } from "@/lib/content.functions";
 import adeboye1 from "@/assets/adeboye-1.webp";
 import adeboye2 from "@/assets/adeboye-2.webp";
 
@@ -88,8 +89,30 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  loader: async () => {
+    try {
+      const { events: publishedEvents } = await getPublicContent();
+      return { publishedEvents };
+    } catch (error) {
+      console.error("[home] Unable to load published events", error);
+      return { publishedEvents: [] as PublicEvent[] };
+    }
+  },
   component: HomePage,
+  errorComponent: () => null,
+  notFoundComponent: () => null,
 });
+
+function formatEventDate(value: string) {
+  return new Date(value).toLocaleString("en-NG", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 const quickActions = [
   {
@@ -123,6 +146,7 @@ const ministryIcons = [Baby, Sparkles, Shield, HeartHandshake, Music] as const;
 const eventIcons = [Flame, Users, Fish] as const;
 
 function HomePage() {
+  const { publishedEvents } = Route.useLoaderData();
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -135,9 +159,43 @@ function HomePage() {
   const prev = () => setCurrent((c) => (c - 1 + heroSlides.length) % heroSlides.length);
   const next = () => setCurrent((c) => (c + 1) % heroSlides.length);
 
+  const now = Date.now();
+  const upcoming = publishedEvents
+    .filter((event) => event.status !== "concluded")
+    .filter((event) => new Date(event.end_date ?? event.event_date).getTime() >= now)
+    .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
+  const announcement = upcoming.find((event) => event.is_featured) ?? null;
+  const eventCards = upcoming.length > 0 ? upcoming.slice(0, 6) : publishedEvents.slice(0, 6);
+
   return (
     <PageShell>
       <SplashScreen />
+
+      {announcement && (
+        <div className="border-b border-accent/30 bg-accent/10">
+          <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+            <div className="flex items-start gap-3">
+              <Megaphone className="mt-0.5 size-5 shrink-0 text-accent" />
+              <div>
+                <p className="eyebrow">Next up at the parish</p>
+                <p className="mt-1 text-sm font-semibold text-foreground sm:text-base">
+                  {announcement.title}
+                  {announcement.theme ? ` — ${announcement.theme}` : ""}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+                  {formatEventDate(announcement.event_date)} · {announcement.location}
+                </p>
+              </div>
+            </div>
+            <Button asChild size="sm" className="shrink-0 self-start sm:self-auto">
+              <a href="#events">
+                See details <ArrowRight className="size-4" />
+              </a>
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Hero */}
       <section className="surface-ink">
         <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:px-8 lg:py-24">
@@ -513,21 +571,65 @@ function HomePage() {
       {/* Events */}
       <section id="events" className="bg-secondary py-16 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading eyebrow="Through the year" title="Church Events" />
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {events.map((event, i) => {
-              const Icon = eventIcons[i % eventIcons.length]!;
-              return (
-                <Reveal key={event.title} delay={i * 110} className="panel p-8">
-                  <Icon className="size-6 text-accent" />
-                  <h3 className="mt-5 text-base font-semibold text-foreground">{event.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {event.description}
-                  </p>
-                </Reveal>
-              );
-            })}
-          </div>
+          <SectionHeading
+            eyebrow="Through the year"
+            title="Church Events"
+            description={
+              eventCards.length > 0
+                ? "Upcoming services, programmes and special gatherings at the parish."
+                : "Special gatherings we look forward to through the year."
+            }
+          />
+          {eventCards.length > 0 ? (
+            <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {eventCards.map((event, i) => {
+                const Icon = eventIcons[i % eventIcons.length]!;
+                return (
+                  <Reveal key={event.id} delay={i * 110} className="panel overflow-hidden">
+                    {event.flyer_url && (
+                      <img
+                        src={event.flyer_url}
+                        alt={`Flyer for ${event.title}`}
+                        loading="lazy"
+                        className="aspect-16/9 w-full object-cover"
+                      />
+                    )}
+                    <div className="p-8">
+                      <Icon className="size-6 text-accent" />
+                      <h3 className="mt-5 text-base font-semibold text-foreground">{event.title}</h3>
+                      {event.theme && (
+                        <p className="mt-1 text-sm font-medium text-accent">{event.theme}</p>
+                      )}
+                      <p className="mt-3 inline-flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="size-4 text-accent" /> {formatEventDate(event.event_date)}
+                      </p>
+                      <p className="mt-1.5 inline-flex items-start gap-2 text-sm text-muted-foreground">
+                        <MapPin className="mt-0.5 size-4 shrink-0 text-accent" /> {event.location}
+                      </p>
+                      <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                        {event.description}
+                      </p>
+                    </div>
+                  </Reveal>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
+              {events.map((event, i) => {
+                const Icon = eventIcons[i % eventIcons.length]!;
+                return (
+                  <Reveal key={event.title} delay={i * 110} className="panel p-8">
+                    <Icon className="size-6 text-accent" />
+                    <h3 className="mt-5 text-base font-semibold text-foreground">{event.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      {event.description}
+                    </p>
+                  </Reveal>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
