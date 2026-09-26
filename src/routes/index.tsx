@@ -43,29 +43,9 @@ import {
   visitorExpectations,
   TELEGRAM_CHANNEL_URL,
 } from "@/lib/site-data";
-import { galleryHighlights } from "@/lib/gallery";
 import { getPublicContent, type PublicEvent, type PublicGalleryPhoto } from "@/lib/content.functions";
 import adeboye1 from "@/assets/adeboye-1.webp";
 import adeboye2 from "@/assets/adeboye-2.webp";
-
-export const heroSlides = [
-  {
-    src: galleryHighlights[0]?.src ?? "",
-    alt: "Congregation worshipping at RCCG The Master's Place, Ile-Ife",
-  },
-  {
-    src: galleryHighlights[1]?.src ?? "",
-    alt: "Church family at RCCG The Master's Place",
-  },
-  {
-    src: galleryHighlights[2]?.src ?? "",
-    alt: "A recent gathering at RCCG The Master's Place",
-  },
-  {
-    src: galleryHighlights[3]?.src ?? "",
-    alt: "Fellowship at RCCG The Master's Place",
-  },
-];
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -148,13 +128,13 @@ const eventIcons = [Flame, Users, Fish] as const;
 function HomePage() {
   const { publishedEvents, photos } = Route.useLoaderData();
   const managedPhotos = photos.filter((photo) => photo.image_url).map((photo) => ({ src: photo.image_url, alt: photo.caption || "A moment at The Master's Place" }));
-  const slides = managedPhotos.length ? managedPhotos.slice(0, 4) : heroSlides;
-  const highlights = managedPhotos.length ? managedPhotos.slice(0, 6) : galleryHighlights;
+  const slides = managedPhotos.slice(0, 4);
+  const highlights = managedPhotos.slice(0, 6);
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
-    if (paused) return;
+    if (paused || !slides.length) return;
     const timer = setInterval(() => setCurrent((prev) => (prev + 1) % slides.length), 6000);
     return () => clearInterval(timer);
   }, [paused, slides.length]);
@@ -236,7 +216,7 @@ function HomePage() {
             </div>
           </div>
 
-          <div className="relative">
+           {slides.length > 0 && <div className="relative">
             <div
               aria-hidden
               className="animate-spin-slow absolute -top-12 -right-12 hidden size-48 rounded-full border-4 border-dashed border-accent/50 lg:block"
@@ -250,7 +230,7 @@ function HomePage() {
               className="animate-spin-slow absolute -bottom-12 -left-12 hidden size-36 rounded-full border-4 border-dashed border-current/25 lg:block"
             >
               <span className="absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 rounded-full bg-accent shadow-[0_0_12px_var(--accent)]" />
-            </div>
+           </div>}
             <div
               aria-hidden
               className="animate-spin-slow-reverse absolute right-1/4 -bottom-14 hidden size-20 rounded-full border-[3px] border-accent/40 lg:block"
@@ -359,7 +339,7 @@ function HomePage() {
             title="Moments from our services & programmes"
             description="Real photographs from Sunday worship, Cultural Sunday, Family Weekend, Christmas Carol and the Master's Praise Concert."
           />
-          <div className="mt-12 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+           {highlights.length > 0 && <div className="mt-12 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
               {highlights.map((photo, i) => (
               <Reveal
                   key={`${photo.src}-${i}`}
@@ -376,7 +356,7 @@ function HomePage() {
                 />
               </Reveal>
             ))}
-          </div>
+           </div>}
           <div className="mt-10 flex justify-center">
             <Button asChild size="lg">
               <Link to="/gallery">
@@ -525,14 +505,14 @@ function HomePage() {
       {/* Visitors */}
       <section id="visitors" className="bg-secondary py-16 lg:py-24">
         <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8">
-          <Reveal className="relative aspect-4/3 overflow-hidden rounded-xl border border-border">
+          {managedPhotos.length > 0 && <Reveal className="relative aspect-4/3 overflow-hidden rounded-xl border border-border">
             <img
-              src={(managedPhotos[4] ?? managedPhotos[0] ?? galleryHighlights[4])?.src ?? ""}
+              src={(managedPhotos[4] ?? managedPhotos[0])?.src ?? ""}
               alt="Members welcoming one another at RCCG The Master's Place"
               loading="lazy"
               className="size-full object-cover"
             />
-          </Reveal>
+          </Reveal>}
           <Reveal delay={120}>
             <SectionHeading
               align="left"

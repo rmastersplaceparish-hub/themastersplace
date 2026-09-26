@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, ExternalLink, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageShell, PageHeader } from "@/components/site/page-shell";
-import { DRIVE_ROOT_URL, galleryAlbums, type GalleryPhoto } from "@/lib/gallery";
+import { DRIVE_ROOT_URL, type GalleryPhoto } from "@/lib/gallery";
 import { getPublicContent, type PublicGalleryPhoto } from "@/lib/content.functions";
 
 type DisplayPhoto = GalleryPhoto & { category: string };
@@ -46,8 +46,6 @@ function GalleryPage() {
   const { uploadedPhotos } = Route.useLoaderData();
   const [lightbox, setLightbox] = useState<number | null>(null);
   const [filter, setFilter] = useState<string>("All");
-
-  const staticAlbum = galleryAlbums[0];
 
   const dbPhotos: DisplayPhoto[] = useMemo(
     () =>
@@ -98,7 +96,7 @@ function GalleryPage() {
   }, [lightbox, close, step]);
 
   const currentPhoto = lightbox === null ? null : (photos[lightbox] ?? null);
-  const heading = staticAlbum?.title ?? "Recent Moments";
+  const heading = "Recent Moments";
 
   return (
     <PageShell>
@@ -124,7 +122,7 @@ function GalleryPage() {
               <span className="brass-rule mt-5" />
             </div>
             <Button asChild variant="outline" className="border-current/30 bg-transparent text-current hover:bg-current/10 hover:text-current" size="sm">
-              <a href={staticAlbum?.driveUrl ?? DRIVE_ROOT_URL} target="_blank" rel="noreferrer">
+              <a href={DRIVE_ROOT_URL} target="_blank" rel="noreferrer">
                 View all on Google Photos <ExternalLink className="size-4" />
               </a>
             </Button>

@@ -12,4 +12,4 @@
 ## Project architecture
 
 - Internal pastoral-care reads and writes use TanStack Start server functions with authenticated Supabase context; this keeps service credentials out of the browser.
-- Shared album images are stored as Lovable asset pointers and resolved against the stable project preview origin, so their URLs load on Vercel as well as Lovable.
+- Gallery photos live in Supabase church-media with records in gallery_photos and signed URLs from server functions, so staff changes propagate to Lovable and Vercel without redeploying.
