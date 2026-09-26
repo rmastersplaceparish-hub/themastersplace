@@ -1,9 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, ExternalLink, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageShell, PageHeader } from "@/components/site/page-shell";
 import { DRIVE_ROOT_URL, galleryAlbums, type GalleryPhoto } from "@/lib/gallery";
+import { getPublicContent, type PublicGalleryPhoto } from "@/lib/content.functions";
+
+type DisplayPhoto = GalleryPhoto & { category: string };
+
+const FALLBACK_CATEGORY = "Church life";
 
 export const Route = createFileRoute("/gallery")({
   head: () => ({
@@ -23,23 +28,62 @@ export const Route = createFileRoute("/gallery")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  loader: async () => {
+    try {
+      const { photos } = await getPublicContent();
+      return { uploadedPhotos: photos };
+    } catch (error) {
+      console.error("[gallery] Unable to load uploaded photos", error);
+      return { uploadedPhotos: [] as PublicGalleryPhoto[] };
+    }
+  },
   component: GalleryPage,
+  errorComponent: () => null,
+  notFoundComponent: () => null,
 });
 
 function GalleryPage() {
+  const { uploadedPhotos } = Route.useLoaderData();
   const [lightbox, setLightbox] = useState<number | null>(null);
-  const active = galleryAlbums[0];
+  const [filter, setFilter] = useState<string>("All");
 
-  if (!active) return null;
+  const staticAlbum = galleryAlbums[0];
+
+  const dbPhotos: DisplayPhoto[] = useMemo(
+    () =>
+      uploadedPhotos
+        .filter((photo) => Boolean(photo.image_url))
+        .map((photo) => ({
+          src: photo.image_url,
+          alt: photo.caption ?? "A recent moment at RCCG The Master's Place",
+          category: photo.category || FALLBACK_CATEGORY,
+        })),
+    [uploadedPhotos],
+  );
+
+  const allPhotos: DisplayPhoto[] = useMemo(() => {
+    if (dbPhotos.length > 0) return dbPhotos;
+    return (staticAlbum?.photos ?? []).map((photo) => ({ ...photo, category: FALLBACK_CATEGORY }));
+  }, [dbPhotos, staticAlbum]);
+
+  const categories = useMemo(() => {
+    const unique = Array.from(new Set(allPhotos.map((photo) => photo.category)));
+    return unique.length > 1 ? ["All", ...unique] : [];
+  }, [allPhotos]);
+
+  const photos = useMemo(
+    () => (filter === "All" ? allPhotos : allPhotos.filter((photo) => photo.category === filter)),
+    [allPhotos, filter],
+  );
 
   const close = useCallback(() => setLightbox(null), []);
   const step = useCallback(
     (delta: number) =>
-      setLightbox((i) =>
-        i === null ? i : (i + delta + active.photos.length) % active.photos.length,
-      ),
-    [active.photos.length],
+      setLightbox((i) => (i === null ? i : (i + delta + photos.length) % photos.length)),
+    [photos.length],
   );
+
+  useEffect(() => setLightbox(null), [filter]);
 
   useEffect(() => {
     if (lightbox === null) return;
@@ -56,7 +100,8 @@ function GalleryPage() {
     };
   }, [lightbox, close, step]);
 
-  const currentPhoto: GalleryPhoto | null = lightbox === null ? null : (active.photos[lightbox] ?? null);
+  const currentPhoto = lightbox === null ? null : (photos[lightbox] ?? null);
+  const heading = dbPhotos.length > 0 ? "Recent Moments" : (staticAlbum?.title ?? "Recent Moments");
 
   return (
     <PageShell>
@@ -77,36 +122,59 @@ function GalleryPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="eyebrow">{active.group}</p>
-              <h2 className="mt-3 text-2xl font-semibold text-foreground sm:text-3xl">
-                {active.title}
-              </h2>
+              <p className="eyebrow">Life at The Master&apos;s Place</p>
+              <h2 className="mt-3 text-2xl font-semibold text-foreground sm:text-3xl">{heading}</h2>
               <span className="brass-rule mt-5" />
             </div>
             <Button asChild variant="outline" className="border-current/30 bg-transparent text-current hover:bg-current/10 hover:text-current" size="sm">
-              <a href={active.driveUrl} target="_blank" rel="noreferrer">
+              <a href={staticAlbum?.driveUrl ?? DRIVE_ROOT_URL} target="_blank" rel="noreferrer">
                 View all on Google Photos <ExternalLink className="size-4" />
               </a>
             </Button>
           </div>
 
-          <div className="mt-10 columns-2 gap-4 md:columns-3 lg:columns-4 [&>*]:mb-4">
-            {active.photos.map((photo, i) => (
-              <button
-                key={`${active.slug}-${photo.src}-${i}`}
-                onClick={() => setLightbox(i)}
-                className="focus-ring block w-full break-inside-avoid overflow-hidden rounded-lg border border-border bg-card"
-                aria-label={`Open photo ${i + 1} of ${active.photos.length}`}
-              >
-                <img
-                  src={photo.src}
-                  alt={photo.alt}
-                  loading="lazy"
-                  className="w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
-                />
-              </button>
-            ))}
-          </div>
+          {categories.length > 0 && (
+            <div className="mt-8 flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setFilter(category)}
+                  aria-pressed={filter === category}
+                  className={`focus-ring rounded-full border px-4 py-1.5 text-xs font-medium transition-colors ${
+                    filter === category
+                      ? "border-accent bg-accent/15 text-foreground"
+                      : "border-border bg-secondary text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {photos.length === 0 ? (
+            <p className="mt-10 text-sm text-muted-foreground">
+              Photos from our recent gatherings will appear here soon.
+            </p>
+          ) : (
+            <div className="mt-10 columns-2 gap-4 md:columns-3 lg:columns-4 [&>*]:mb-4">
+              {photos.map((photo, i) => (
+                <button
+                  key={`${photo.src}-${i}`}
+                  onClick={() => setLightbox(i)}
+                  className="focus-ring block w-full break-inside-avoid overflow-hidden rounded-lg border border-border bg-card"
+                  aria-label={`Open photo ${i + 1} of ${photos.length}`}
+                >
+                  <img
+                    src={photo.src}
+                    alt={photo.alt}
+                    loading="lazy"
+                    className="w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -152,7 +220,7 @@ function GalleryPage() {
               className="max-h-[80vh] w-auto rounded-lg object-contain"
             />
             <figcaption className="mt-3 text-center text-xs text-white/70">
-              {currentPhoto.alt} · {(lightbox ?? 0) + 1} / {active.photos.length}
+              {currentPhoto.alt} · {(lightbox ?? 0) + 1} / {photos.length}
             </figcaption>
           </figure>
         </div>
