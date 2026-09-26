@@ -577,7 +577,7 @@ function HomePage() {
             description={
               eventCards.length > 0
                 ? "Upcoming services, programmes and special gatherings at the parish."
-                : undefined
+                : "Special gatherings we look forward to through the year."
             }
           />
           {eventCards.length > 0 ? (
