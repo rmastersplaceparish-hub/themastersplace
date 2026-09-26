@@ -8,3 +8,4 @@
 - [x] Verify anonymous submission and private conversation lookup end to end.
 - [x] Create pastoral staff accounts and assign pastor/admin roles in Supabase Auth.
 - [x] Assign the newly created Supabase user the admin role and verify access.
+- [ ] Ensure shared album photos load with correctly named files on Vercel as well as the site preview.
