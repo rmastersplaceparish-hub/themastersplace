@@ -15,6 +15,7 @@ import {
   deleteEvent,
   deleteGalleryPhoto,
   listManagedContent,
+  replaceGalleryPhoto,
   updateEvent,
   updateGalleryPhoto,
   type ManagedEvent,
@@ -169,7 +170,10 @@ function EventForm({ event, onCancel, onSave, saving }: { event: ManagedEvent | 
 
 function GalleryManager({ photos, onRefresh }: { photos: ManagedGalleryPhoto[]; onRefresh: () => Promise<void> }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const replacementRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [replacing, setReplacing] = useState<string | null>(null);
+  const [replaceTarget, setReplaceTarget] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState({ caption: "", category: "Church life", displayOrder: 0, isVisible: true });
 
@@ -193,9 +197,26 @@ function GalleryManager({ photos, onRefresh }: { photos: ManagedGalleryPhoto[]; 
   const savePhoto = async (photo: ManagedGalleryPhoto) => {
     try { await updateGalleryPhoto({ data: { id: photo.id, ...draft } }); setEditing(null); await onRefresh(); toast.success("Photo details updated."); } catch (error) { toast.error(error instanceof Error ? error.message : "Unable to update photo."); }
   };
+  const replacePhoto = async (file: File | undefined) => {
+    if (!file || !replaceTarget) return;
+    const id = replaceTarget;
+    setReplacing(id);
+    try {
+      const storagePath = await uploadMedia(file, "gallery");
+      try {
+        await replaceGalleryPhoto({ data: { id, storagePath } });
+      } catch (error) {
+        await supabase.storage.from("church-media").remove([storagePath]);
+        throw error;
+      }
+      await onRefresh();
+      toast.success("Photo replaced.");
+    } catch (error) { toast.error(error instanceof Error ? error.message : "Unable to replace photo."); }
+    finally { setReplacing(null); setReplaceTarget(null); if (replacementRef.current) replacementRef.current.value = ""; }
+  };
   return <div className="space-y-6">
-    <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="eyebrow">Public gallery</p><h2 className="mt-2 text-2xl font-semibold text-foreground">Photo gallery</h2><p className="mt-2 text-sm text-muted-foreground">Add, label, hide or remove the photos visitors see.</p></div><><input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={(e) => void upload(e.target.files)} /><Button onClick={() => inputRef.current?.click()} disabled={uploading}><ImagePlus className="size-4" />{uploading ? "Uploading..." : "Add photos"}</Button></></div>
-    {photos.length === 0 ? <EmptyState icon={FileImage} title="No gallery photos yet" text="Choose Add photos to start building the public gallery." /> : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{photos.map((photo) => <article key={photo.id} className="panel overflow-hidden"><div className="relative aspect-[4/3] bg-secondary">{photo.image_url ? <img src={photo.image_url} alt={photo.caption ?? "Church gallery photo"} className="size-full object-cover" /> : <FileImage className="absolute inset-0 m-auto size-8 text-muted-foreground" />}{!photo.is_visible && <Badge className="absolute top-2 left-2" variant="secondary">Hidden</Badge>}</div><div className="space-y-3 p-4">{editing === photo.id ? <><Input value={draft.caption} onChange={(e) => setDraft({ ...draft, caption: e.target.value })} placeholder="Caption" /><Input value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })} placeholder="Category" /><div className="flex gap-2"><Button size="sm" onClick={() => void savePhoto(photo)}>Save</Button><Button size="sm" variant="outline" onClick={() => setEditing(null)}>Cancel</Button></div></> : <><p className="line-clamp-2 text-sm font-medium text-foreground">{photo.caption || "Untitled photo"}</p><p className="text-xs text-muted-foreground">{photo.category}</p><div className="flex gap-1 border-t border-border pt-3"><Button size="sm" variant="outline" onClick={() => { setEditing(photo.id); setDraft({ caption: photo.caption ?? "", category: photo.category, displayOrder: photo.display_order, isVisible: photo.is_visible }); }}><Pencil className="size-3.5" /> Edit</Button><Button size="sm" variant="ghost" onClick={() => void remove(photo)} aria-label="Delete photo"><Trash2 className="size-3.5" /></Button></div></>}</div></article>)}</div>}
+    <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="eyebrow">Public gallery</p><h2 className="mt-2 text-2xl font-semibold text-foreground">Photo gallery</h2><p className="mt-2 text-sm text-muted-foreground">Add, label, hide, replace or remove the photos visitors see.</p></div><><input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={(e) => void upload(e.target.files)} /><input ref={replacementRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" aria-label="Choose replacement photo" onChange={(e) => void replacePhoto(e.target.files?.[0])} /><Button onClick={() => inputRef.current?.click()} disabled={uploading || Boolean(replacing)}><ImagePlus className="size-4" />{uploading ? "Uploading..." : "Add photos"}</Button></></div>
+    {photos.length === 0 ? <EmptyState icon={FileImage} title="No gallery photos yet" text="Choose Add photos to start building the public gallery." /> : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{photos.map((photo) => <article key={photo.id} className="panel overflow-hidden"><div className="relative aspect-[4/3] bg-secondary">{photo.image_url ? <img src={photo.image_url} alt={photo.caption ?? "Church gallery photo"} className="size-full object-cover" /> : <FileImage className="absolute inset-0 m-auto size-8 text-muted-foreground" />}{!photo.is_visible && <Badge className="absolute top-2 left-2" variant="secondary">Hidden</Badge>}</div><div className="space-y-3 p-4">{editing === photo.id ? <><Input value={draft.caption} onChange={(e) => setDraft({ ...draft, caption: e.target.value })} placeholder="Caption" /><Input value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })} placeholder="Category" /><div className="flex gap-2"><Button size="sm" onClick={() => void savePhoto(photo)}>Save</Button><Button size="sm" variant="outline" onClick={() => setEditing(null)}>Cancel</Button></div></> : <><p className="line-clamp-2 text-sm font-medium text-foreground">{photo.caption || "Untitled photo"}</p><p className="text-xs text-muted-foreground">{photo.category}</p><div className="flex flex-wrap gap-1 border-t border-border pt-3"><Button size="sm" variant="outline" onClick={() => { setEditing(photo.id); setDraft({ caption: photo.caption ?? "", category: photo.category, displayOrder: photo.display_order, isVisible: photo.is_visible }); }}><Pencil className="size-3.5" /> Edit</Button><Button size="sm" variant="outline" disabled={Boolean(replacing)} onClick={() => { setReplaceTarget(photo.id); replacementRef.current?.click(); }}><Upload className="size-3.5" /> {replacing === photo.id ? "Replacing..." : "Replace"}</Button><Button size="sm" variant="ghost" onClick={() => void remove(photo)} aria-label="Delete photo"><Trash2 className="size-3.5" /></Button></div></>}</div></article>)}</div>}
   </div>;
 }
 
