@@ -44,6 +44,7 @@ import {
   TELEGRAM_CHANNEL_URL,
 } from "@/lib/site-data";
 import { galleryHighlights } from "@/lib/gallery";
+import { getPublicContent, type PublicEvent } from "@/lib/content.functions";
 import adeboye1 from "@/assets/adeboye-1.webp";
 import adeboye2 from "@/assets/adeboye-2.webp";
 
