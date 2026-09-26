@@ -146,6 +146,7 @@ const ministryIcons = [Baby, Sparkles, Shield, HeartHandshake, Music] as const;
 const eventIcons = [Flame, Users, Fish] as const;
 
 function HomePage() {
+  const { publishedEvents } = Route.useLoaderData();
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -158,9 +159,43 @@ function HomePage() {
   const prev = () => setCurrent((c) => (c - 1 + heroSlides.length) % heroSlides.length);
   const next = () => setCurrent((c) => (c + 1) % heroSlides.length);
 
+  const now = Date.now();
+  const upcoming = publishedEvents
+    .filter((event) => event.status !== "concluded")
+    .filter((event) => new Date(event.end_date ?? event.event_date).getTime() >= now)
+    .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
+  const announcement = upcoming.find((event) => event.is_featured) ?? null;
+  const eventCards = upcoming.length > 0 ? upcoming.slice(0, 6) : publishedEvents.slice(0, 6);
+
   return (
     <PageShell>
       <SplashScreen />
+
+      {announcement && (
+        <div className="border-b border-accent/30 bg-accent/10">
+          <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+            <div className="flex items-start gap-3">
+              <Megaphone className="mt-0.5 size-5 shrink-0 text-accent" />
+              <div>
+                <p className="eyebrow">Next up at the parish</p>
+                <p className="mt-1 text-sm font-semibold text-foreground sm:text-base">
+                  {announcement.title}
+                  {announcement.theme ? ` — ${announcement.theme}` : ""}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+                  {formatEventDate(announcement.event_date)} · {announcement.location}
+                </p>
+              </div>
+            </div>
+            <Button asChild size="sm" className="shrink-0 self-start sm:self-auto">
+              <a href="#events">
+                See details <ArrowRight className="size-4" />
+              </a>
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Hero */}
       <section className="surface-ink">
         <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:px-8 lg:py-24">
