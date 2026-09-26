@@ -61,10 +61,7 @@ function GalleryPage() {
     [uploadedPhotos],
   );
 
-  const allPhotos: DisplayPhoto[] = useMemo(() => {
-    if (dbPhotos.length > 0) return dbPhotos;
-    return (staticAlbum?.photos ?? []).map((photo) => ({ ...photo, category: FALLBACK_CATEGORY }));
-  }, [dbPhotos, staticAlbum]);
+  const allPhotos: DisplayPhoto[] = dbPhotos;
 
   const categories = useMemo(() => {
     const unique = Array.from(new Set(allPhotos.map((photo) => photo.category)));
@@ -101,7 +98,7 @@ function GalleryPage() {
   }, [lightbox, close, step]);
 
   const currentPhoto = lightbox === null ? null : (photos[lightbox] ?? null);
-  const heading = dbPhotos.length > 0 ? "Recent Moments" : (staticAlbum?.title ?? "Recent Moments");
+  const heading = staticAlbum?.title ?? "Recent Moments";
 
   return (
     <PageShell>
