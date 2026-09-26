@@ -571,21 +571,65 @@ function HomePage() {
       {/* Events */}
       <section id="events" className="bg-secondary py-16 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading eyebrow="Through the year" title="Church Events" />
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {events.map((event, i) => {
-              const Icon = eventIcons[i % eventIcons.length]!;
-              return (
-                <Reveal key={event.title} delay={i * 110} className="panel p-8">
-                  <Icon className="size-6 text-accent" />
-                  <h3 className="mt-5 text-base font-semibold text-foreground">{event.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {event.description}
-                  </p>
-                </Reveal>
-              );
-            })}
-          </div>
+          <SectionHeading
+            eyebrow="Through the year"
+            title="Church Events"
+            description={
+              eventCards.length > 0
+                ? "Upcoming services, programmes and special gatherings at the parish."
+                : undefined
+            }
+          />
+          {eventCards.length > 0 ? (
+            <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {eventCards.map((event, i) => {
+                const Icon = eventIcons[i % eventIcons.length]!;
+                return (
+                  <Reveal key={event.id} delay={i * 110} className="panel overflow-hidden">
+                    {event.flyer_url && (
+                      <img
+                        src={event.flyer_url}
+                        alt={`Flyer for ${event.title}`}
+                        loading="lazy"
+                        className="aspect-16/9 w-full object-cover"
+                      />
+                    )}
+                    <div className="p-8">
+                      <Icon className="size-6 text-accent" />
+                      <h3 className="mt-5 text-base font-semibold text-foreground">{event.title}</h3>
+                      {event.theme && (
+                        <p className="mt-1 text-sm font-medium text-accent">{event.theme}</p>
+                      )}
+                      <p className="mt-3 inline-flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="size-4 text-accent" /> {formatEventDate(event.event_date)}
+                      </p>
+                      <p className="mt-1.5 inline-flex items-start gap-2 text-sm text-muted-foreground">
+                        <MapPin className="mt-0.5 size-4 shrink-0 text-accent" /> {event.location}
+                      </p>
+                      <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                        {event.description}
+                      </p>
+                    </div>
+                  </Reveal>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
+              {events.map((event, i) => {
+                const Icon = eventIcons[i % eventIcons.length]!;
+                return (
+                  <Reveal key={event.title} delay={i * 110} className="panel p-8">
+                    <Icon className="size-6 text-accent" />
+                    <h3 className="mt-5 text-base font-semibold text-foreground">{event.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      {event.description}
+                    </p>
+                  </Reveal>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
