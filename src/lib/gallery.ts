@@ -26,17 +26,22 @@ export interface GalleryAlbum {
 
 export const DRIVE_ROOT_URL = "https://photos.app.goo.gl/bP3mL8BXVtMUikAf8";
 
+// Asset pointers use root-relative paths on Lovable. Resolve them against the
+// project preview so the same photos also work when this site runs on Vercel.
+const PHOTO_ORIGIN = "https://id-preview--23567c28-58c9-436f-83a9-a870db587025.lovable.app";
+const photoUrl = (path: string) => new URL(path, PHOTO_ORIGIN).href;
+
 const sharedAlbumPhotos: GalleryPhoto[] = [
-  { src: photo01Asset.url, alt: "A recent moment at RCCG The Master's Place" },
-  { src: photo02Asset.url, alt: "Church family at RCCG The Master's Place" },
-  { src: photo03Asset.url, alt: "A recent gathering at RCCG The Master's Place" },
-  { src: photo04Asset.url, alt: "Fellowship at RCCG The Master's Place" },
-  { src: photo05Asset.url, alt: "Life at RCCG The Master's Place" },
-  { src: photo06Asset.url, alt: "A joyful moment at RCCG The Master's Place" },
-  { src: photo07Asset.url, alt: "The Master's Place church community" },
-  { src: photo08Asset.url, alt: "A recent church gathering in Ile-Ife" },
-  { src: photo09Asset.url, alt: "Worship and fellowship at The Master's Place" },
-  { src: photo10Asset.url, alt: "A recent photo from The Master's Place" },
+  { src: photoUrl(photo01Asset.url), alt: "A recent moment at RCCG The Master's Place" },
+  { src: photoUrl(photo02Asset.url), alt: "Church family at RCCG The Master's Place" },
+  { src: photoUrl(photo03Asset.url), alt: "A recent gathering at RCCG The Master's Place" },
+  { src: photoUrl(photo04Asset.url), alt: "Fellowship at RCCG The Master's Place" },
+  { src: photoUrl(photo05Asset.url), alt: "Life at RCCG The Master's Place" },
+  { src: photoUrl(photo06Asset.url), alt: "A joyful moment at RCCG The Master's Place" },
+  { src: photoUrl(photo07Asset.url), alt: "The Master's Place church community" },
+  { src: photoUrl(photo08Asset.url), alt: "A recent church gathering in Ile-Ife" },
+  { src: photoUrl(photo09Asset.url), alt: "Worship and fellowship at The Master's Place" },
+  { src: photoUrl(photo10Asset.url), alt: "A recent photo from The Master's Place" },
 ];
 
 export const galleryAlbums: GalleryAlbum[] = [
