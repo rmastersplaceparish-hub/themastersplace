@@ -246,12 +246,15 @@ export const replaceGalleryPhoto = createServerFn({ method: "POST" })
 
 export const deleteGalleryPhoto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ id: z.string().uuid(), storagePath: z.string().min(3) }).parse(input))
+  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ context, data }) => {
     await assertPastoralStaff(context.supabase, context.userId);
+    const { data: existing, error: lookupError } = await context.supabase
+      .from("gallery_photos").select("storage_path").eq("id", data.id).single();
+    if (lookupError || !existing) throw new Error(lookupError?.message ?? "Photo not found.");
     const { error } = await context.supabase.from("gallery_photos").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.storage.from("church-media").remove([data.storagePath]);
+    await supabaseAdmin.storage.from("church-media").remove([existing.storage_path]);
     return { ok: true };
   });

@@ -192,7 +192,7 @@ function GalleryManager({ photos, onRefresh }: { photos: ManagedGalleryPhoto[]; 
   };
   const remove = async (photo: ManagedGalleryPhoto) => {
     if (!window.confirm("Delete this photo from the gallery?")) return;
-    try { await deleteGalleryPhoto({ data: { id: photo.id, storagePath: photo.storage_path } }); await onRefresh(); toast.success("Photo removed."); } catch (error) { toast.error(error instanceof Error ? error.message : "Unable to remove photo."); }
+    try { await deleteGalleryPhoto({ data: { id: photo.id } }); await onRefresh(); toast.success("Photo removed."); } catch (error) { toast.error(error instanceof Error ? error.message : "Unable to remove photo."); }
   };
   const savePhoto = async (photo: ManagedGalleryPhoto) => {
     try { await updateGalleryPhoto({ data: { id: photo.id, ...draft } }); setEditing(null); await onRefresh(); toast.success("Photo details updated."); } catch (error) { toast.error(error instanceof Error ? error.message : "Unable to update photo."); }
