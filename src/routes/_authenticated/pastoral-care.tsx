@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { CheckCircle2, LogOut, MessageCircle, RefreshCw, Send, ShieldCheck } from "lucide-react";
+import { CheckCircle2, LogOut, MessageCircle, RefreshCw, Send, ShieldCheck, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
   getPastoralThread,
   listPastoralSubmissions,
   replyAsPastor,
+  deletePastoralThread,
   updatePastoralStatus,
 } from "@/lib/pastoral.functions";
 import type { Database, Tables } from "@/integrations/supabase/types";
@@ -128,6 +129,20 @@ function PastoralCarePage() {
     }
   };
 
+  const removeThread = async () => {
+    if (!thread) return;
+    if (!window.confirm("Delete this conversation permanently? The member will no longer be able to open it with their access code.")) return;
+    try {
+      await deletePastoralThread({ data: { submissionId: thread.submission.id } });
+      setThread(null);
+      setSelectedId(null);
+      await loadSubmissions();
+      toast.success("Conversation deleted.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to delete the conversation.");
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     await navigate({ to: "/auth" });
@@ -211,10 +226,13 @@ function PastoralCarePage() {
                     <h2 className="mt-2 text-xl font-semibold text-foreground">{thread.submission.title}</h2>
                     <p className="mt-2 text-xs text-muted-foreground">Submitted {new Date(thread.submission.created_at).toLocaleString()}</p>
                   </div>
+                  <div className="flex gap-2">
                   <Select value={thread.submission.status} onValueChange={(value) => void setStatus(value as Status)}>
                     <SelectTrigger className="w-full sm:w-44" aria-label="Conversation status"><SelectValue /></SelectTrigger>
                     <SelectContent>{(Object.keys(statusLabels) as Status[]).map((status) => <SelectItem key={status} value={status}>{statusLabels[status]}</SelectItem>)}</SelectContent>
                   </Select>
+                    <Button variant="outline" size="icon" onClick={() => void removeThread()} aria-label="Delete conversation" title="Delete conversation" className="shrink-0 text-destructive hover:text-destructive"><Trash2 className="size-4" /></Button>
+                  </div>
                 </div>
                 <div className="max-h-[30rem] space-y-4 overflow-y-auto p-5 sm:p-6">
                   {thread.messages.map((item) => (
