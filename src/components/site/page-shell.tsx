@@ -8,7 +8,7 @@ export function PageShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
-      <main className="flex-1 pt-16 lg:pt-18">{children}</main>
+      <main className="flex-1 pt-[5.75rem] lg:pt-[6.25rem]">{children}</main>
       <SiteFooter />
     </div>
   );

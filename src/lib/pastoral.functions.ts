@@ -109,3 +109,14 @@ export const updatePastoralStatus = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { success: true };
   });
+export const deletePastoralThread = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { submissionId: string }) => z.object({ submissionId: z.string().uuid() }).parse(input))
+  .handler(async ({ context, data }) => {
+    if (!(await isPastoralStaff(context.supabase, context.userId))) {
+      throw new Error("You do not have permission to delete pastoral threads.");
+    }
+    const { error } = await context.supabase.from("pastoral_submissions").delete().eq("id", data.submissionId);
+    if (error) throw new Error(error.message);
+    return { success: true };
+  });
