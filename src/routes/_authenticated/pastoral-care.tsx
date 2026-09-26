@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { PageShell, PageHeader } from "@/components/site/page-shell";
+import { StaffNav } from "@/components/site/staff-nav";
 import { supabase } from "@/integrations/supabase/client";
 import {
   getPastoralThread,
@@ -144,6 +145,7 @@ function PastoralCarePage() {
           </Button>
         }
       />
+      <StaffNav />
       <section className="bg-background py-8 lg:py-12">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[22rem_1fr] lg:px-8">
           <aside className="panel flex min-h-[34rem] flex-col overflow-hidden">
