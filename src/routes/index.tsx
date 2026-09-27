@@ -44,6 +44,7 @@ import {
   TELEGRAM_CHANNEL_URL,
 } from "@/lib/site-data";
 import { getPublicContent, type PublicEvent, type PublicGalleryPhoto } from "@/lib/content.functions";
+import { ogImageMeta } from "@/lib/seo";
 import adeboye1 from "@/assets/adeboye-1.webp";
 import adeboye2 from "@/assets/adeboye-2.webp";
 
@@ -67,6 +68,7 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      ...ogImageMeta,
     ],
   }),
   loader: async () => {
