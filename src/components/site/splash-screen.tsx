@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import logo from "@/assets/logo.png";
 
 const SPLASH_KEY = "tmp-splash-seen";
@@ -8,24 +9,21 @@ export function SplashScreen() {
 
   useEffect(() => {
     try {
-      if (typeof window !== "undefined") {
-        if (localStorage.getItem(SPLASH_KEY) === "1") return;
-        localStorage.setItem(SPLASH_KEY, "1");
-      }
+      if (window.localStorage.getItem(SPLASH_KEY) === "1") return;
+      window.localStorage.setItem(SPLASH_KEY, "1");
     } catch {
-      // Continue if private browsing blocks storage
+      // storage unavailable (private mode) — still show it once this visit
     }
-
     setShow(true);
-    const timer = setTimeout(() => setShow(false), 6000);
-    return () => clearTimeout(timer);
+    const timer = window.setTimeout(() => setShow(false), 6000);
+    return () => window.clearTimeout(timer);
   }, []);
 
   if (!show) return null;
 
   return (
-    <aside
-      aria-label="Welcome screen"
+    <div
+      aria-hidden="true"
       role="presentation"
       className="splash-stage animate-splash-out pointer-events-none fixed inset-0 z-[100] overflow-hidden"
     >
@@ -33,7 +31,7 @@ export function SplashScreen() {
       <span className="splash-curtain splash-curtain-right" />
       <span className="splash-horizon" />
 
-      <div className="splash-core">
+      <div className="splash-content">
         <div className="splash-emblem">
           <span className="splash-aura" />
 
@@ -55,8 +53,9 @@ export function SplashScreen() {
           </div>
         </div>
 
-        <div className="splash-words">
-          <h1 className="splash-title">RCCG The Master&apos;s Place</h1>
+        <div className="splash-copy text-center">
+          <span className="splash-prelude">RCCG</span>
+          <p className="splash-title">The Master&apos;s Place</p>
           <span className="splash-divider">
             <i />
           </span>
@@ -69,6 +68,8 @@ export function SplashScreen() {
           </p>
         </div>
       </div>
-    </aside>
+
+      <span className="splash-finale" />
+    </div>
   );
 }
