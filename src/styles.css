@@ -819,6 +819,18 @@
   box-shadow: 0 0 10px var(--accent);
 }
 
+.splash-subtitle {
+  margin-top: 0.45rem;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: clamp(0.7rem, 2vw, 0.95rem);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  animation: splash-text-in 0.7s 1.66s ease-out both;
+}
+
+
 .splash-tagline {
   display: flex;
   flex-wrap: wrap;
