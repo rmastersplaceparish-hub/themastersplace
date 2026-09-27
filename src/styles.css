@@ -555,6 +555,90 @@
   animation: splash-aura-breathe 2.4s 0.7s ease-in-out both;
 }
 
+/* Radiant golden sunburst behind the emblem */
+.splash-rays {
+  position: absolute;
+  inset: -34%;
+  border-radius: 9999px;
+  opacity: 0;
+  animation:
+    splash-rays-in 1.4s 0.55s cubic-bezier(0.22, 1, 0.36, 1) both,
+    splash-rays-turn 80s linear infinite;
+}
+
+.splash-rays i {
+  position: absolute;
+  top: 0;
+  left: calc(50% - 1px);
+  width: 2px;
+  height: 50%;
+  transform-origin: center bottom;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklch, var(--accent) 62%, transparent),
+    transparent 78%
+  );
+  clip-path: polygon(35% 0, 65% 0, 100% 100%, 0 100%);
+}
+
+.splash-rays i:nth-child(odd) {
+  width: 1px;
+  opacity: 0.6;
+}
+
+/* Sacred backdrop + framing drawn from the parish banner */
+.splash-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 88%, color-mix(in oklch, var(--accent) 20%, transparent), transparent 55%),
+    url("/og-image.png") center 30% / cover no-repeat;
+  filter: saturate(1.05);
+  opacity: 0;
+  animation: splash-backdrop-in 1.6s 0.1s ease-out both;
+}
+
+.splash-backdrop::after {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, color-mix(in oklch, var(--ink) 78%, transparent), color-mix(in oklch, var(--ink) 40%, transparent) 45%, color-mix(in oklch, var(--ink) 86%, transparent)),
+    radial-gradient(circle at 50% 40%, color-mix(in oklch, var(--accent) 14%, transparent), transparent 46%);
+  content: "";
+}
+
+.splash-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(ellipse at center, transparent 42%, color-mix(in oklch, var(--ink) 72%, transparent));
+}
+
+.splash-arch {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: clamp(2.5rem, 8vw, 7rem);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.splash-arch-left {
+  left: 0;
+  background:
+    linear-gradient(90deg, transparent, color-mix(in oklch, var(--accent) 16%, transparent)),
+    repeating-linear-gradient(0deg, transparent 0 3.2rem, color-mix(in oklch, var(--accent) 34%, transparent) 3.2rem calc(3.2rem + 1px));
+}
+
+.splash-arch-right {
+  right: 0;
+  background:
+    linear-gradient(270deg, transparent, color-mix(in oklch, var(--accent) 16%, transparent)),
+    repeating-linear-gradient(0deg, transparent 0 3.2rem, color-mix(in oklch, var(--accent) 34%, transparent) 3.2rem calc(3.2rem + 1px));
+}
+
+
 .splash-orbit {
   position: absolute;
   border-radius: 9999px;
