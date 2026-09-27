@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { PageShell, PageHeader, SectionHeading } from "@/components/site/page-shell";
 import { serviceTimes, TELEGRAM_CHANNEL_URL, CHURCH_ADDRESS } from "@/lib/site-data";
 import { getPublicContent, type PublicGalleryPhoto } from "@/lib/content.functions";
+import { ogImageMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/sermons")({
   loader: async () => {
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/sermons")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      ...ogImageMeta,
     ],
   }),
   component: SermonsPage,

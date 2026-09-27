@@ -3,6 +3,7 @@ import { BookOpen, Send, Images, MessageSquarePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageShell, PageHeader, SectionHeading } from "@/components/site/page-shell";
 import { TELEGRAM_CHANNEL_URL } from "@/lib/site-data";
+import { ogImageMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/library")({
   head: () => ({
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/library")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      ...ogImageMeta,
     ],
   }),
   component: LibraryPage,

@@ -3,6 +3,7 @@ import { Send, Download, Headphones, Bell, ExternalLink, Radio } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { PageShell, PageHeader, SectionHeading } from "@/components/site/page-shell";
 import { TELEGRAM_CHANNEL_HANDLE, TELEGRAM_CHANNEL_URL } from "@/lib/site-data";
+import { ogImageMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/audio")({
   head: () => ({
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/audio")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      ...ogImageMeta,
     ],
   }),
   component: AudioPage,

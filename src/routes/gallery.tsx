@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { PageShell, PageHeader } from "@/components/site/page-shell";
 import { DRIVE_ROOT_URL, type GalleryPhoto } from "@/lib/gallery";
 import { getPublicContent, type PublicGalleryPhoto } from "@/lib/content.functions";
+import { ogImageMeta } from "@/lib/seo";
 
 type DisplayPhoto = GalleryPhoto & { category: string };
 
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/gallery")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      ...ogImageMeta,
     ],
   }),
   loader: async () => {
